@@ -1,5 +1,6 @@
-/* 
-this code uses RPC to send and receive data from geth,
+
+Ethereum-Client-in-C++ 
+this is a C++ code uses RPC to send and receive data from geth,
 We have a cfg.json file, (in this link are all available functions: https://github.com/ethereum/wiki/wiki/JSON-RPC#) where described the structure of calls to geth,
 dependencies: libcurl, json_c, jsoncpp.
 
@@ -40,5 +41,5 @@ data received from geth:
    "result" : "0x123998b1e98a5280000"
 }
 I accept suggestions and collaboration to make this code better.		
-*/
+
 # Ethereum-Client-in-C-
