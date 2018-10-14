@@ -27,13 +27,14 @@
 #include <curl/curl.h>
 #include <string>
 #include <unistd.h>
-const char *httpAdd = "http://127.0.0.1:8545";
+const char *httpAdd = "http://127.0.0.1:8501";
 std::unique_ptr<std::string> httpData(new std::string());
 static std::string curlRes;
 static size_t WriteCallback(void *contents, size_t size, size_t nmemb, void *userp);
 bool curlSendData(const char *http, const char *strHeader, std::string &data);
 bool sendTx(const Json::Value &cfg_root,std::string  &data, std::string method,int numberOfParameters);
 const char *strHeader = "Content-Type: application/json";
+
 bool curlSendData(const char *http,std::string &data)
 {
 	static std::string curlRes;
@@ -81,6 +82,7 @@ class Eth
 {
 private:
 	std::string lQuote="\"";
+	std::string lQ="\"";
 		void parseData(std::string  &data,std::string  &method)
 	{
     	data= "{";
@@ -94,12 +96,49 @@ public:
 	    std::string  method = cfg_root[method_s]["method"].asString();
 	    std::string id = cfg_root[method_s]["id"].asString();
 		parseData(data,method);
+//		std::cout << id << std::endl;
 		if(numberOfParameters == 0)
 		{
 			data += "]" + lQuote + "id" + lQuote + ":" + id  +"}" ;
 			curlSendData(httpAdd,data);
 			return true;
 		}
+		else
+		if(method_s=="eth_sendTransaction")
+		{
+
+			uint32_t dataSize=cfg_root[method_s]["params"]["data"].size();
+			uint32_t i;
+			std::string dataBlock[dataSize];
+			std::string  method = cfg_root[method_s]["method"].asString();
+		    std::string id = cfg_root[method_s]["id"].asString();
+			parseData(data,method);
+			std::string from = cfg_root[method_s]["params"]["from"].asString();
+			std::string to = cfg_root[method_s]["params"]["to"].asString();
+			std::string gas = cfg_root[method_s]["params"]["gas"].asString();
+			std::string gasPrice = cfg_root[method_s]["params"]["gasPrice"].asString();
+			std::string value = cfg_root[method_s]["params"]["value"].asString();
+			data+= "{";
+			data += lQ + "from" + lQ + ":" + lQ + from + lQ + ",";
+			data += lQ + "to" + lQ + ":" + lQ + to + lQ + ",";
+			data += lQ + "gas" + lQ + ":" + lQ + gas + lQ + ",";
+			data += lQ + "gasPrice" + lQ + ":" + lQ + gasPrice + lQ + ",";
+			data += lQ + "value" + lQ + ":" + lQ + value + lQ + ",";
+			data += lQ + "data" + lQ + ":" + lQ;
+			for(i=0;i < dataSize;i++)
+			{	
+				
+				data +=  cfg_root[method_s]["params"]["data"][i].asString() ;
+				std::cout << cfg_root[method_s]["params"]["data"][i].asString()  << std::endl;
+			}
+			data += lQ;
+//			data += lQ + "data" + lQ + ":" + lQ + dataBlock + lQ ;
+			data += "}]";
+	    	data += "," + lQuote + "id" + lQuote + ":" +  id +"}" ;
+		 	std::cout << data << std::endl;    	
+		 	curlSendData(httpAdd,data);
+			return true;
+		} 
 		else
 		{
 			for(int i = 0; i < numberOfParameters; i++)
@@ -108,7 +147,8 @@ public:
 			}
 		}
 		data += "]";
-    	data += "," + lQuote + "id" + lQuote + ":" + id  +"}" ;
+    	data += "," + lQuote + "id" + lQuote + ":" +  id +"}" ;
+	// 	std::cout << data << std::endl;    	
     	curlSendData(httpAdd,data);
 		return true;
 	}
